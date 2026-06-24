@@ -30,6 +30,17 @@ async function run() {
     const db = client.db(process.env.DB_NAME)
     const doctors = db.collection(process.env.DOCTORS_COLLECTION)
 
+    // all doctors
+    app.get('/doctors', async(req, res)=>{
+        try{
+          const doctors = db.collection(process.env.DOCTORS_COLLECTION)
+          const result = await doctors.find({}).toArray();
+          res.status(200).send(result)
+        }catch(error){
+          console.error(error)
+        }
+    })
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
