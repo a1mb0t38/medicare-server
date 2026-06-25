@@ -34,10 +34,17 @@ async function run() {
     app.get('/doctors', async(req, res)=>{
         try{
           const doctors = db.collection(process.env.DOCTORS_COLLECTION)
-          const result = await doctors.find({}).toArray();
+          const {name, specialization} = req.query;
+          const query = {};
+          
+          if(name) query.doctorName = {$regex: name, $options:'i'};
+          if(specialization) query.specialization = {$regex: specialization, $options:'i'};
+
+          const result = await doctors.find(query).toArray();
           res.status(200).send(result)
         }catch(error){
           console.error(error)
+          res.status(500).json({error: 'Internal server error'})
         }
     })
 
