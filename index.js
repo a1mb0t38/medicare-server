@@ -6,7 +6,8 @@ const express = require('express');
 const app = express()
 const port = process.env.PORT
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const cors = require('cors')
+const cors = require('cors');
+const { error } = require("node:console");
 
 
 app.use(cors())
@@ -48,7 +49,20 @@ async function run() {
         }
     })
 
-
+    // doctors details by id
+    app.get('/doctors/:id', async(req, res)=>{
+      const doctors = db.collection(process.env.DOCTORS_COLLECTION)
+      const {id} = req.params;
+      const doctor = await doctors.findOne({
+        _id: new ObjectId(id)
+      })
+      if(!doctor){
+        return res.status(400).json({
+          error: 'Doctor not found'
+        })
+      }
+      res.status(200).json(doctor)
+    })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
