@@ -30,6 +30,7 @@ async function run() {
 
     const db = client.db(process.env.DB_NAME)
     const doctors = db.collection(process.env.DOCTORS_COLLECTION)
+    const appointments = db.collection(process.env.APPOINTMENT_COLLECTION)
 
     // all doctors
     app.get('/doctors', async(req, res)=>{
@@ -63,6 +64,20 @@ async function run() {
       }
       res.status(200).json(doctor)
     })
+
+    // appointments api
+    app.post('/appointments', async(req, res)=>{
+        try{
+          const appointment = req.body
+        const result = await appointments.insertOne(appointment)
+        res.send(result)
+        }catch(error){
+          res.status(500).send({message: "Faild to save appointment"})
+        }
+    })
+
+
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
