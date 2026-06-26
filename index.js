@@ -65,7 +65,7 @@ async function run() {
       res.status(200).json(doctor)
     })
 
-    // appointments api
+    // appointments api post
     app.post('/appointments', async(req, res)=>{
         try{
           const appointment = req.body
@@ -75,6 +75,19 @@ async function run() {
           res.status(500).send({message: "Faild to save appointment"})
         }
     })
+
+
+    // get appointment 
+    app.get('/appointments/:patientId', async(req, res)=>{
+      try{
+        const {patientId} = req.params
+        const appointment = await appointments.find({patientId}).toArray()
+        res.send(appointment); 
+      }catch(error){
+        console.error(error)
+      }
+    })
+
 
 
 
