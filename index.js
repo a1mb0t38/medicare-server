@@ -77,11 +77,21 @@ async function run() {
     })
 
 
-    // get appointment 
-    app.get('/appointments/:patientId', async(req, res)=>{
+    // get appointment for patient
+    app.get('/appointments/patient/:patientId', async(req, res)=>{
       try{
         const {patientId} = req.params
         const appointment = await appointments.find({patientId}).toArray()
+        res.send(appointment); 
+      }catch(error){
+        console.error(error)
+      }
+    })
+
+      app.get('/appointments/doctor/:doctorId', async(req, res)=>{
+      try{
+        const {doctorId} = req.params
+        const appointment = await appointments.find({doctorId}).toArray()
         res.send(appointment); 
       }catch(error){
         console.error(error)
