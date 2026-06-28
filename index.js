@@ -50,6 +50,25 @@ async function run() {
         }
     })
 
+    // doctor post api
+    app.post('/doctors', async(req, res)=> {
+      try{
+        const doctor = req.body;
+        const existingDoctor = await doctors.findOne({
+          doctorId: doctor.doctorId,
+        })
+        if(existingDoctor){
+          return res.status(400).json({
+            message: "Doctor already exists"
+          })
+        }
+        const result = await doctors.insertOne(doctor)
+        res.status(200).send(result)
+      }catch(error){
+        console.error(error)
+      }
+    })
+
     // doctors details by id
     app.get('/doctors/:id', async(req, res)=>{
       const doctors = db.collection(process.env.DOCTORS_COLLECTION)
