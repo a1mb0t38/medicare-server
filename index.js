@@ -32,6 +32,25 @@ async function run() {
     const doctors = db.collection(process.env.DOCTORS_COLLECTION)
     const appointments = db.collection(process.env.APPOINTMENT_COLLECTION)
     const prescriptions = db.collection(process.env.PRESCRIPTION_COLLECTION)
+    const users = db.collection(process.env.USER_COLLECTION)
+
+    // admin overview api
+    app.get('/admin/overview', async(req, res)=>{
+      try{
+        const totalUsers = await users.countDocuments()
+        const totalDoctors = await doctors.countDocuments()
+        const totalAppointments = await appointments.countDocuments()
+        const totalPrescriptions = await prescriptions.countDocuments()
+        res.send({
+          totalUsers,
+          totalDoctors,
+          totalAppointments,
+          totalPrescriptions,
+        })
+      }catch(error){
+        console.error(error)
+      }
+    })
 
     // all doctors
     app.get('/doctors', async (req, res) => {
