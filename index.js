@@ -59,7 +59,7 @@ const verifyToken = async (req, res, next) => {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const db = client.db(process.env.DB_NAME)
     const doctors = db.collection(process.env.DOCTORS_COLLECTION)
@@ -102,7 +102,7 @@ async function run() {
     })
 
     // all doctors
-    app.get('/doctors', async (req, res) => {
+    app.get('/doctors', verifyToken, async (req, res) => {
       try {
         const doctors = db.collection(process.env.DOCTORS_COLLECTION)
         const { name, specialization } = req.query;
@@ -293,7 +293,7 @@ async function run() {
 
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
