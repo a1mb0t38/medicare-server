@@ -34,6 +34,22 @@ async function run() {
     const prescriptions = db.collection(process.env.PRESCRIPTION_COLLECTION)
     const users = db.collection(process.env.USER_COLLECTION)
 
+    // get all users
+    app.get('/users', async(req, res)=>{
+      
+      const result = await users.find().toArray()
+      res.send(result)
+    })
+
+    // delete user
+    app.delete('/user/:id', async(req, res)=>{
+      const {id} = req.params;
+      const result = await users.deleteOne({
+        _id: new ObjectId(id),
+      })
+      res.send(result)
+    })
+
     // admin overview api
     app.get('/admin/overview', async(req, res)=>{
       try{
