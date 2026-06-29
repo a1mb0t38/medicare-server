@@ -8,6 +8,7 @@ const port = process.env.PORT
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
 const { error } = require("node:console");
+const { createRemoteJWKSet, jwtVerify } = require("jose-cjs");
 
 
 app.use(cors())
@@ -23,6 +24,38 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
+
+const JWKS = createRemoteJWKSet(
+  new URL(`${process.env.CLIENT_URL}/api/auth/jwks`)
+)
+
+const verifyToken = async (req, res, next) => {
+  const authHeader = req?.headers.authorization;
+  // console.log(authHeader);
+  if (!authHeader) {
+    return res.status(401).json({ message: "Unauthorized access" });
+  }
+  const token = authHeader?.split(' ')[1];
+  // console.log(token);
+  if (!token) {
+    return res.status(401).json({ message: "Unauthorized access" });
+  }
+
+  try {
+    const { payload } = await jwtVerify(token, JWKS)
+    // console.log(payload);
+    next();
+  } catch (error) {
+    console.error("Token verification failed:", error);
+    return res.status(401).json({ message: "Unauthorized access" });
+  }
+
+
+}
+
+
+
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -42,7 +75,7 @@ async function run() {
     })
 
     // delete user
-    app.delete('/user/:id', async (req, res) => {
+    app.delete('/user/:id', verifyToken, async (req, res) => {
       const { id } = req.params;
       const result = await users.deleteOne({
         _id: new ObjectId(id),
@@ -51,7 +84,7 @@ async function run() {
     })
 
     // admin overview api
-    app.get('/admin/overview', async (req, res) => {
+    app.get('/admin/overview', verifyToken, async (req, res) => {
       try {
         const totalUsers = await users.countDocuments()
         const totalDoctors = await doctors.countDocuments()
@@ -87,7 +120,7 @@ async function run() {
     })
 
     // doctor post api
-    app.post('/doctors', async (req, res) => {
+    app.post('/doctors', verifyToken, async (req, res) => {
       try {
         const doctor = req.body;
         const existingDoctor = await doctors.findOne({
@@ -106,7 +139,7 @@ async function run() {
     })
 
     // doctors details by id
-    app.get('/doctors/:id', async (req, res) => {
+    app.get('/doctors/:id', verifyToken, async (req, res) => {
       const doctors = db.collection(process.env.DOCTORS_COLLECTION)
       const { id } = req.params;
       const doctor = await doctors.findOne({
@@ -121,7 +154,7 @@ async function run() {
     })
 
     // update doctors varification status
-    app.patch('/doctors/:id/status', async (req, res) => {
+    app.patch('/doctors/:id/status', verifyToken, async (req, res) => {
       const { id } = req.params
       const { verificationStatus } = req.body
       const result = await doctors.updateOne(
@@ -138,7 +171,7 @@ async function run() {
     })
 
     // appointments api post
-    app.post('/appointments', async (req, res) => {
+    app.post('/appointments', verifyToken, async (req, res) => {
       try {
         const appointment = req.body
         const result = await appointments.insertOne(appointment)
@@ -150,7 +183,7 @@ async function run() {
 
 
     // get appointment for patient
-    app.get('/appointments/patient/:patientId', async (req, res) => {
+    app.get('/appointments/patient/:patientId', verifyToken, async (req, res) => {
       try {
         const { patientId } = req.params
         const appointment = await appointments.find({ patientId }).toArray()
@@ -161,7 +194,7 @@ async function run() {
     })
 
     // get accepted appointment for doctor
-    app.get('/appointments/doctor/:doctorId/accepted', async (req, res) => {
+    app.get('/appointments/doctor/:doctorId/accepted', verifyToken, async (req, res) => {
       const { doctorId } = req.params;
       const result = await appointments.find({
         doctorId,
@@ -171,7 +204,7 @@ async function run() {
     })
 
     // appointments status update api
-    app.patch("/appointments/:id", async (req, res) => {
+    app.patch("/appointments/:id", verifyToken, async (req, res) => {
       try {
         const { id } = req.params;
         const { appointmentStatus } = req.body;
@@ -207,7 +240,7 @@ async function run() {
     })
 
     // prescriptions api
-    app.post('/prescriptions', async (req, res) => {
+    app.post('/prescriptions', verifyToken, async (req, res) => {
       try {
         const prescription = req.body;
         if (!prescription.doctorId || !prescription.patientId || !prescription.appointmentId || !prescription.diagnosis || !prescription.medications) {
@@ -232,7 +265,7 @@ async function run() {
     })
 
     // get prescription for patient
-    app.get('/prescriptions/patient/:patientId', async (req, res) => {
+    app.get('/prescriptions/patient/:patientId', verifyToken, async (req, res) => {
       try {
 
         const { patientId } = req.params;
@@ -246,7 +279,7 @@ async function run() {
       }
     })
 
-    app.get('/appointments/doctor/:doctorId', async (req, res) => {
+    app.get('/appointments/doctor/:doctorId', verifyToken, async (req, res) => {
       try {
         const { doctorId } = req.params
         const appointment = await appointments.find({ doctorId }).toArray()
