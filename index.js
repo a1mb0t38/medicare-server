@@ -35,15 +35,15 @@ async function run() {
     const users = db.collection(process.env.USER_COLLECTION)
 
     // get all users
-    app.get('/users', async(req, res)=>{
-      
+    app.get('/users', async (req, res) => {
+
       const result = await users.find().toArray()
       res.send(result)
     })
 
     // delete user
-    app.delete('/user/:id', async(req, res)=>{
-      const {id} = req.params;
+    app.delete('/user/:id', async (req, res) => {
+      const { id } = req.params;
       const result = await users.deleteOne({
         _id: new ObjectId(id),
       })
@@ -51,8 +51,8 @@ async function run() {
     })
 
     // admin overview api
-    app.get('/admin/overview', async(req, res)=>{
-      try{
+    app.get('/admin/overview', async (req, res) => {
+      try {
         const totalUsers = await users.countDocuments()
         const totalDoctors = await doctors.countDocuments()
         const totalAppointments = await appointments.countDocuments()
@@ -63,7 +63,7 @@ async function run() {
           totalAppointments,
           totalPrescriptions,
         })
-      }catch(error){
+      } catch (error) {
         console.error(error)
       }
     })
@@ -118,6 +118,23 @@ async function run() {
         })
       }
       res.status(200).json(doctor)
+    })
+
+    // update doctors varification status
+    app.patch('/doctors/:id/status', async (req, res) => {
+      const { id } = req.params
+      const { verificationStatus } = req.body
+      const result = await doctors.updateOne(
+        {
+          _id: new ObjectId(id)
+        },
+        {
+          $set: {
+            verificationStatus,
+          },
+        }
+      )
+      res.send(result)
     })
 
     // appointments api post
@@ -224,7 +241,7 @@ async function run() {
         }).sort({ createdAt: -1 }).toArray()
         res.send(result)
 
-      }catch(error){
+      } catch (error) {
         console.error(error)
       }
     })
