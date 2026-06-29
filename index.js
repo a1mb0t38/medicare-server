@@ -31,6 +31,7 @@ async function run() {
     const db = client.db(process.env.DB_NAME)
     const doctors = db.collection(process.env.DOCTORS_COLLECTION)
     const appointments = db.collection(process.env.APPOINTMENT_COLLECTION)
+    const prescriptions = db.collection(process.env.PRESCRIPTION_COLLECTION)
 
     // all doctors
     app.get('/doctors', async(req, res)=>{
@@ -107,6 +108,16 @@ async function run() {
       }
     })
 
+    // get accepted appointment for doctor
+    app.get('/appointments/doctor/:doctorId/accepted', async(req,res)=>{
+      const {doctorId} = req.params;
+      const result = await appointments.find({
+        doctorId,
+        appointmentStatus: "Accepted",
+      }).toArray()
+      res.send(result)
+    })
+
     // appointments status update api
     app.patch("/appointments/:id", async(req, res)=>{
       try{
@@ -136,6 +147,31 @@ async function run() {
         res.status(200).json({
           message: `Appointment ${appointmentStatus.toLowerCase()} successfully`,
           modifiedCount: result.modifiedCount,
+        })
+
+      }catch(error){
+        console.error(error)
+      }
+    })
+
+    // prescriptions api
+    app.post('/prescriptions', async(req, res)=>{
+      try{
+        const prescription = req.body;
+        if(!prescription.doctorId || !prescription.patientId || !prescription.appointmentId || !prescription.diagnosis || !prescription.medications){
+          return res.status(400).json({
+            message: "Missing required field",
+          })
+        }
+
+        const result = await prescriptions.insertOne({
+          ...prescription,
+          createdAt: new Date(),
+        })
+        
+        res.status(200).json({
+          success: true,
+          message: "prescription created successfully",
         })
 
       }catch(error){
