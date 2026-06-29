@@ -107,6 +107,42 @@ async function run() {
       }
     })
 
+    // appointments status update api
+    app.patch("/appointments/:id", async(req, res)=>{
+      try{
+        const {id} = req.params;
+        const {appointmentStatus} = req.body;
+
+        if(!["Accepted", "Rejected"].includes(appointmentStatus)){
+          return res.status(400).json({
+            message: "invalid appointment status",
+          });
+        }
+        const result = await appointments.updateOne(
+          {_id: new ObjectId(id)},
+          {
+            $set: {
+              appointmentStatus,
+            },
+          }
+        )
+
+        if(result.matchedCount === 0){
+          return res.status(400).json({
+            message: "Appointment not found",
+          });
+        }
+
+        res.status(200).json({
+          message: `Appointment ${appointmentStatus.toLowerCase()} successfully`,
+          modifiedCount: result.modifiedCount,
+        })
+
+      }catch(error){
+        console.error(error)
+      }
+    })
+
       app.get('/appointments/doctor/:doctorId', async(req, res)=>{
       try{
         const {doctorId} = req.params
