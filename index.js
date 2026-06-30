@@ -108,7 +108,7 @@ async function run() {
     })
 
     // all doctors
-    app.get('/doctors', verifyToken, async (req, res) => {
+    app.get('/doctors', async (req, res) => {
       try {
         const doctors = db.collection(process.env.DOCTORS_COLLECTION)
         const { name, specialization } = req.query;
