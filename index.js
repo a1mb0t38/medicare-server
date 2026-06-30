@@ -68,7 +68,7 @@ async function run() {
     const users = db.collection(process.env.USER_COLLECTION)
 
     // get all users
-    app.get('/users', async (req, res) => {
+    app.get('/users', verifyToken, async (req, res) => {
 
       const result = await users.find().toArray()
       res.send(result)
