@@ -74,6 +74,12 @@ async function run() {
       res.send(result)
     })
 
+    // feature doctor
+    app.get('/feature-doctor',  async(req, res)=>{
+      const result = await doctors.find().sort({_id: -1}).limit(3).toArray()
+      res.json(result)
+    })
+
     // delete user
     app.delete('/user/:id', verifyToken, async (req, res) => {
       const { id } = req.params;
